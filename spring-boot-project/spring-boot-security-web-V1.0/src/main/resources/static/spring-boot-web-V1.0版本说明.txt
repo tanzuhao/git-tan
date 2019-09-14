@@ -1,0 +1,12 @@
+﻿spring-boot-security-web-V1.0
+
+spring boot 集成 security
+
+1.基于spring-boot-web-V1.0构建用户权限管理
+
+  用户需要登录成功才能访问其他模块
+  登录页：http://localhost:8086
+  登录账号/密码:admin/admin,详见s_user表。
+
+2.数据库表发生更改
+ 全量sql详见: resource/附件/spring_boot-security-web-V1.0全量.sql

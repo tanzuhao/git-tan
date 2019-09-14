@@ -1,0 +1,46 @@
+spring-cloud-hystrix-V1.0
+
+ spring cloud hystrix 熔断处理
+
+1.概念
+  Spring Cloud Netfix Hystrix是隔离措施的一种实现，可以设置在某种超时或失败情形下断开
+  依赖调用或者返回指定逻辑，从而提高分布式系统的稳定性。
+
+2.作用
+  Hystrix可以实现快速失败，如果它在一段时间内侦测到许多类似的错误，
+  会强迫其以后的多个调用快速失败，不再访问远程服务器，
+  从而防止应用程序不断地尝试执行可能会失败的操作进而导致资源耗尽。
+  Hystrix熔断器也可以使应用程序能够诊断错误是否已经修正，如果已经修正，应用程序会再次尝试调用操作。
+
+3. 实现操作
+  Hystrix进行FallBack操作来服务降级，Fallback相当于是降级操作. 
+  对于查询操作, 我们可以实现一个fallback方法, 当请求后端服务出现异常的时候, 
+  可以使用fallback方法返回的值. fallback方法的返回值一般是设置的默认值或者来自缓存。
+  通知后面的请求告知这服务暂时不可用了。
+
+4.生产者和注册中心不需要改动。
+  沿用 spring-cloud-producer1、spring-cloud-producer2、spring-cloud-eureka-server，分别打包部署
+ 
+5.消费者基于spring-cloud-consumer-V1.0构建spring-cloud-consumer-hystrix-V1.0。
+  5.1.引入hystrix依赖包
+  5.2.配置文件
+  5.3.启动类加入注解
+  5.4.熔断回调HystrixController、HystrixService、HystrixFailBackService
+  
+6.重构
+  6.1.去掉IP调用
+  6.1.去掉ribbon调用
+  6.2.重构feign调用，实现失败回调和负载均衡。
+   feign集成了ribbon功能
+
+7.熔断处理和负载均衡测试
+
+  7.1.分别启动服务:eureka-server、producer1、producer2、consumer
+
+  7.2.访问:http://localhost:8888/cloud/hystrix/hello
+
+      a.正常狂刷url，consumer请求负载均衡，访问producer1、producer2都有可能。
+
+      b.关掉producer1,狂刷url,当请求producer1服务时，回调显示错误信息。往后只请求producer2服务。
+
+      c.启动producer1服务，狂刷url，consumer请求负载均衡，访问producer1、producer2都有可能。

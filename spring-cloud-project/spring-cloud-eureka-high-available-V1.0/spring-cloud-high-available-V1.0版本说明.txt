@@ -1,0 +1,54 @@
+spring-cloud-high-available-V1.0(文件名)
+
+eureka server 高可用
+
+基于spring-cloud-feign-ribbon-V1.0构建项目,做eureka高可用配置。因为没有集成spring cloud新组件，项目版本号小数加1，即V1.1。
+
+1.修改host文件,配置3个应用名映射到本机
+   目的：
+   Eureka互相注册要求各个Eureka实例的eureka.instance.hostname不同，如果相同，则会被Eureka标记为unavailable-replicas。
+   其他方式:
+
+   a.设置eureka.instance.hostname为域名或者直接使用不同IP。
+
+   b.使用当前机器IP、127.0.0.1和localhost分别作为三个Eureka的
+
+   操作: 修改 C:\Windows\System32\drivers\etc\hosts文件
+
+        修改内容： 127.0.0.1    localhost tan-server1 tan-server2 tan-server3
+
+2.新建3个eureka server
+    a.服务发现1：
+     项目名:spring-cloud-eureka1-hight-server-V1.0
+     端口号:8761
+     应用名:tan-eureka-service
+     主机名:eureka1-server
+  
+     top3.服务发现2：
+     项目名:spring-cloud-eureka2-hight-server-V1.0
+     端口号:8762
+     应用名:tan-eureka-service
+     主机名:eureka2-server
+   
+     top3.服务发现3：
+     项目名:spring-cloud-eureka3-hight-server-V1.0
+     端口号:8763
+     应用名:tan-eureka-service
+     主机名:eureka3-server
+      
+3.三个eureka server服务进行两两注册
+
+   a.eureka server服务之间数据可同步
+
+   b.其中一个eureka server 挂掉，不影响消费者/生产者工作。
+
+4.基于spring-cloud-feign-ribbon-V1.0新建消费者和生产者
+   
+   生产者：spring-cloud-producer1-hight-V1.0，spring-cloud-producer2-hight-V1.0
+
+   消费者: spring-cloud-consumer-hight-V1.0
+ 
+    生产者和消费者注册到3个注册中心(eureka1、eureka2、eureka3)，详见.properties配置.
+     
+4.数据库表未发生变更
+  resource/附件/spring-boot-base-V1.0.sql

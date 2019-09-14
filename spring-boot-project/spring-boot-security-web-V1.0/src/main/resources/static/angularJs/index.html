@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Index</title>
+</head>
+<!--<script type="text/javascript" src="js/angular.js"></script>-->
+<script type="text/javascript" src="/webjars/angularjs/1.7.2/angular.min.js"></script>
+<body>
+	您好，亲爱的
+	<div ng-app="myApp" ng-controller="myCon">{{username}}</div>
+	欢迎访问angularJs首个demo
+
+</body>
+<script>
+	var app = angular.module("myApp", []);
+	app.controller("myCon", function($scope, $http) {
+		$http.get("/angular/sayHello").then(function(response) {
+			$scope.username = response.data.username
+		})
+	})
+</script>
+
+</html>

@@ -1,0 +1,39 @@
+﻿spring-boot-rabbitmq-V2.0
+
+springboot集成rabbitMQ 进阶版
+
+1.重构生产者、消费、rabbitmq操作工具类
+  1.1.对消费进行监听封装
+  1.2.RabbitMQBaseConfig：通用配置类
+      RabbitMQConfig:业务配置类
+
+2.消息回执（message acknowledgment）
+   即消息确认,确认消费者处理了消息，把消息从队列中移除
+
+3.消息回调
+  确认生产者消息发送成功,即成功把消息发送到exchange
+
+4.可持久化(message durability)
+  3.1.队列持久化
+  3.2.消息持久化
+
+5.prefetch count设置
+  每次从一次性从broker里面取的待消费的消息的个数。
+  例如:prefetchCount=1,即每个消费者每次会预取1个消息准备消费 
+  
+6.消费者处理消息失败后，消息重新入列，重复失败3次后，拒绝入列。
+
+7.rabbitmq 百分之百消息送达策略
+  4.1.队列持久化
+  4.2.消息持久化
+  4.3.设置prefetchcount
+  4.4.生产者发送消息成功，进行回调处理      
+  4.5.消费进行消息确认(ack)
+  4.6.处理消息失败，循环处理，失败重复三次后,拒绝入列，失败消息入库，进行人工干预。
+
+10.集成redis
+
+ 项目需要启动redis和rabbitmq
+ 
+11.数据库未发生变更
+  resource/附件/spring-boot-base-V1.0.sql

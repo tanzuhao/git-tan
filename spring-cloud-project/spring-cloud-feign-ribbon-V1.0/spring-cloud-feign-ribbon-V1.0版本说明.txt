@@ -1,0 +1,78 @@
+﻿spring-cloud-feign-ribbon-V1.0(文件名)
+
+spring boot集成spring cloud feign、spring cloud ribbon
+
+1.为了降低复杂度和方便测试，项目基于spring-boot-base-V1.0集成。
+
+2.新建eureka服务：spring-cloud-eureka-server
+  2.1.作用：注册中心。
+   类似zookeeper,对多个springboot应用进行发现以及管理。
+   eureka注册中心，会等待应用主动向其进行注册，而eureka注册中心在发现了新的应用后，
+   会持续向应用发送心跳，判断其是否存活，并定时向注册中心发送心跳包，告知其存活情况。
+
+  2.2.一个空项目(无需controller、service、dao)、端口号：8761
+
+  2.3.服务提供者、客户端都会注册到该eureka服务
+
+  2.4.新建eureka操作
+   a.引入依赖包
+   b.添加配置文件
+   c.在启动类中增加@EnableEurekaServer
+
+  2.5.以后都使用这个注册中心，建议打Jar包部署，并开启服务
+
+3.服务提供者(生产者):spring-cloud-producer1-V1.0
+  3.1.生产者注册到eureka服务(即注册到：spring-cloud-eureka-server)
+
+  3.2.自定义别名和端口号
+     top1.应用别名:producer-server
+     top2.端口号：8081     
+
+  3.3.对外开放接口(详见:MessageProducerController)
+
+  3.4. copy一份生产者
+     top1.项目名：spring-cloud-producer2
+     top2.端口号:8082
+     top3.应用别名:producer-server
+         应用别名需与spring-cloud-producer1一致，才能实现服务端负载均衡。
+
+  3.5.新建生产者操作
+      a.引入依赖包
+      b.添加配置文件
+      c.在启动类中增加@EnableEurekaClient注解
+
+  3.6.以后经常使用这2个生产者测试（改动少），建议打Jar包部署，并开启服务
+
+4.客户端(消费者)
+ spring-cloud-consumer-V1.0
+  4.1.客户端注册到eureka服务(即spring-cloud-eureka-server)
+
+  4.2.起应用别名:consumer-server(别名可自定义)
+
+  4.3.客户端调用服务方
+     top1.通过ip+port方式调用
+     top2.通过ribbon调用应用名
+     top3.ribbon+创建Feign接口
+         参数类型：
+         a.指定具体参数,例如：@RequestParam("id") String id,...
+         b.用map封装参数,例如：@RequestParam Map<String, Object> map
+         c.指定对象，例如：@RequestBody User user
+
+   4.4.新建消费者操作
+      a.引入依赖包
+      b.添加配置文件
+      c.在启动类中增加@EnableDiscoveryClient注解
+         应用启动后会注册到指定的注册中心中。
+
+5.ribbon实现客户端负载均衡
+  5.1 ribbon+feign+应用名调用
+
+  5.2.效果：客户端多次调用服务方，ribbon均匀的将请求分配到两个生产者实例中。
+
+6.数据库表未发生变更
+  spring-boot-base-V1.0.sql
+-----------------------------------------------------------------------------------------
+
+
+
+

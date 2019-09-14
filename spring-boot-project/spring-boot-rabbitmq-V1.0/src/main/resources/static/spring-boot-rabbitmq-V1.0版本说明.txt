@@ -1,0 +1,52 @@
+﻿spring boot rabbitmq V1.0
+
+springboot集成rabbitMQ 初阶版
+
+1.环境安装
+  1.1.Erlang安装。
+     安装程序：附件\Erlang安装程序\otp_win64_21.0.1.exe
+   RabbitMQ依赖于Erlang，需先安装它
+
+  1.2.RabbitMQ安装包
+     附件\rabbitmq-server-windows-3.7.7.zip
+
+  1.3.安装文档
+     附件\Erlang&RabbitMQ安装文档.docx
+     
+  1.4.RabbitMQ命令
+           切换到rabbitmq安装目录,例如: cmd----->d:------> cd D:\tools\rabbitmq_server-3.7.7\sbin 
+    a.服务启动  
+             直接启动 rabbitmq-server.bat
+             后台启动：rabbitmq-server -detached 
+            或者  rabbitmq-server start
+    b.服务关闭
+       rabbitmqctl stop
+    c.查看是否启动成功
+     rabbitmq-server status
+    d.RabbitMQ管理后台
+            网址： http://localhost:15672
+           默认账号/密码: guest/guest
+     
+2.封装工具类RabbitMQConfig
+
+3.发送和接受消息demo,消息发送包含3大基本路由策略:
+  3.1.Direct类型(点对点模式)
+    测试地址：http://localhost:8086/rabbitmq/direct
+
+  3.2.Topic类型(主题模式)
+     测试地址：http://localhost:8086/rabbitmq/topic
+
+  3.3.Fanout类型(广播模式)
+     测试地址:http://localhost:8086/rabbitmq/fanout
+
+  3.4.header类型(头部模式)
+    headers类型的Exchange(交换器)性能很差,使用率低，可忽略。
+
+4.设置消费者prefetchCount
+
+   4.1.限制queue每次发送给每个消费者的消费数
+
+   4.2.核心代码:RabbitMQConfig.rabbitListenerContainerFactory(...)
+
+5.数据库未发生变更
+   resource/附件/spring-boot-base-V1.0.sql

@@ -1,0 +1,36 @@
+﻿spring-boot-base-V1.0
+
+spring boot 项目搭建
+1.新建项目 
+  1.1.手动创建或者官网(https://spring.io/projects/spring-boot/)下载
+
+  1.2.内容包括：包结构、程序入口(xxApplication.java)、依赖包(pom.xml)、
+   配置文件application.properties
+
+  1.3.环境
+   JDK1.8、springboot2.1.3（2.1.4以上版本差异太大）、mysql、maven project
+
+  1.5.项目启动
+    执行SpringBootBaseApplication.java的mian方法即可。
+
+2.项目结构遵循MVC模式
+
+3.springBoot集成mybatis + mysql
+  通用接口(针对所有业务，在持久层提供通用增删改查接口)
+  业务接口:mapper层方法签名不能与通用mapper接口相同
+
+4.UserController为基本增删改查demo
+ 测试访问URL:
+ http://localhost:8086/sys/user/listUser
+ http://localhost:8086/sys/user/findById/13
+ http://localhost:8086/sys/user/save?username=tanzxuhao
+ http://localhost:8086/sys/user/update?userId=5&username=小米
+ http://localhost:8086/sys/user/delete/1
+
+5.乐观锁
+
+6.项目部署
+    resource/附件/SpringBoot项目部署文档.doc
+
+7.数据库
+  resource/附件/spring-boot-base-V1.0.sql

@@ -1,0 +1,3 @@
+RabbitMQ底层采用Erlang语言进行编写，Rabbitmq使用依赖于Erlang。
+
+otp_win64_21.0.1为Erlang安装程序.

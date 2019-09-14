@@ -1,0 +1,53 @@
+ spring-cloud-admin-monitor-V1.0 
+
+spring cloud 集成spring boot admin，用来监控spring cloud 服务
+
+1.概念
+Spring Boot Admin 是一个开源社区项目，用于管理和监控SpringBoot应用程序。 
+应用程序作为Spring Boot Admin Client向为Spring Boot Admin Server注册（通过HTTP）
+或使用SpringCloud注册中心（例如Eureka，Consul）发现。
+
+2.作用
+  a..监控spring cloud 服务健康状况
+
+  b.邮箱报警，推送spring cloud 服务健康信息。
+
+3.基于spring-cloud-eukera-server构建spring boot admin服务spring-cloud-admin-monitor-server-V1.0
+   3.1.引入依赖包
+     security依赖包、spring boot admin依赖、邮箱依赖包、jetty的依赖
+
+      备注: 默认用tomcat容器，操作过程会出现: Calling [asyncError()] is not valid for a request with Async state [MUST_DISPATCH]
+            改用jetty容器，没有问题。
+ 
+   3.2.配置文件
+     a.端口号:8001 
+     b.应用名:admin-monitor-server
+     c.设置登录账号和密码
+     d.设置邮箱信息
+
+   3.3.在启动类加入注解@EnableAdminServer
+
+4.注册中心、生产者、消费者沿用初始版本jar测试。
+   spring-cloud-eureka-server、spring-cloud-producer1-V1.0、spring-cloud-producer2-V1.0、
+   spring-cloud-consumer-V1.0 均不更改。
+  
+5.测试
+   5.1.spring boot admin 登录管理测试
+      a.url地址: localhost:8001
+      b.账号/密码=admin/admin
+          在.properties设置账号和密码
+
+   5.2.spring boot admin 监控spring cloud 服务健康状况测试
+
+      注册中心、生产者、消费者启动或关闭时，spring boot admin 管理页面会有显示
+
+   5.3.spring boot admin 邮箱预警
+
+     注册中心、生产者、消费者启动或关闭时，会发送信息到指定邮箱。
+    
+       邮箱信息配置在.properties,其中发送人邮箱要开启POP3/SMTP服务，开启操作：
+
+       进入邮箱首页后，设置----->邮箱设置---->账户----->POP3/IMAP/SMTP/Exchange/CardDAV/CalDAV服务--->开启POP3/SMTP服务
+
+6.spring-cloud-admin-monitor-server-V1.0 不需要数据库
+   jar依赖的数据库表均是spring-boot-base-V1.0.sql

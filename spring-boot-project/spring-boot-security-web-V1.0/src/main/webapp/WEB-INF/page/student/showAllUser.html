@@ -1,0 +1,61 @@
+<!DOCTYPE html>  
+<html xmlns:th="http://www.thymeleaf.org">  
+<head>  
+    <meta charset="UTF-8"/>  
+    <title>显示全部用户</title>  
+    <meta charset="UTF-8"/>  
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>  
+    <link href="/webjars/bootstrap/3.3.5/css/bootstrap.css" rel="stylesheet" />
+    <link href="/webjars/bootstrap/3.3.5/css/bootstrap-theme.css" rel="stylesheet" />
+    <script src="/webjars/jquery/3.1.1/jquery.min.js"></script>
+    <script src="/webjars/bootstrap/3.3.5/js/bootstrap.js"></script>
+</head>  
+<body>  
+<div class="container">  
+    <div class="row">  
+        <div class="col-md-5">  
+            <div class="panel panel-primary">  
+                <div class="panel-heading text-center">  
+                    <span class="panel-title">全部用户信息</span>  
+                </div>  
+                <div class="panel-body">  
+                    <ul class="list-group">  
+                        <li class="list-group-item" th:each="user:${users}">  
+                            <table class="table-bordered" style="width: 100%">  
+                                <tr>  
+                                    <th>编号</th>  
+                                    <td><span th:text="${user.id}"></span></td>  
+                                </tr>  
+                                <tr>  
+                                    <th>用户名</th>  
+                                    <td><span th:text="${user.username}"></span></td>  
+                                </tr>  
+                                <tr>  
+                                    <th>密码</th>  
+                                    <td><span th:text="${user.password}"></span></td>  
+                                </tr>  
+                                <tr>  
+                                    <th>电话</th>  
+                                    <td><span th:text="${user.telephone}"></span></td>  
+                                </tr>  
+                                <tr>  
+                                    <th>注册时间</th>  
+                                    <td><span th:text="${#dates.format(user.registerTime, 'yyyy-MM-dd hh:mm:ss')}"></span></td>  
+                                </tr>  
+                                <tr>  
+                                    <th>权限</th>  
+                                    <td><span th:text="${user.popedom==0?'管理员':'普通用户'}"></span></td>  
+                                </tr>  
+                            </table>  
+                        </li>  
+                    </ul>  
+                </div>  
+                <div class="panel-footer text-right">  
+                    <span class="panel-title">酒城工作室@2107</span>  
+                </div>  
+            </div>  
+        </div>  
+    </div>  
+</div>  
+</body>  
+</html>  

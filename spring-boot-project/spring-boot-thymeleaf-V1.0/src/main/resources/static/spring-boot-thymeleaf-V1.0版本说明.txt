@@ -1,0 +1,14 @@
+﻿spring-boot-thymeleaf-V1.0
+
+1.基于spring-boot-base-V1.0构建项目
+
+2.spring boot集成thymeleaf模板作页面展示
+   页面跳转demo
+   localhost:8086/index
+
+  静态资源直接访问demo
+   http://localhost:8086/static/index-static.html
+   http://localhost:8086/static/spring-boot-thymeleaf-V1.0版本说明.txt
+
+3.数据库未发生变更
+  resource/附件/spring-boot-base-V1.0.sql

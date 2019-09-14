@@ -1,0 +1,115 @@
+spring-cloud-config-V1.0
+
+集成spring cloud config
+
+搭建 config server 和 config client
+
+1.简介
+ a.Config Server：为所有环境中的应用程序管理其外部属性。
+   Config Server是一个集中式、可扩展的配置服务器，它可以集中管理应用程序各个环境下的配置，默认使用Git存储配置内容。
+
+ b.Config Client: 微服务在启动时，通过Config Client请求Config Server以获取配置内容，同时会缓存这些内容。
+
+2.为什么要使用spring cloud config
+
+  2.1.集中管理：成百上千（可能没这么多）个微服务需要集中管理配置，否则维护困难、容易出错；
+
+  2.2.运行期动态调整：某些参数需要在应用运行时动态调整（如连接池大小、熔断阈值等），并且调整时不停止服务；
+  
+  2.3.自动更新配置：微服务能够在配置发生变化是自动更新配置。
+
+3.基于spring-cloud-eureka-server构建spring-cloud-config-server-V1.0 
+
+   1.1.端口号：9000 应用名: config-server 
+   1.2.引入依赖包 
+   1.3.配置文件  
+      a.spring.cloud.config.server.git.uri:github上对应项目的地址  
+
+      b.spring.cloud.config.server.git.search-paths:git搜索的相对路径
+
+      c.spring.cloud.config.label:配置仓库的分支
+
+      配置demo:
+
+      在https://github.com/tanzuhao创建了一个名为git-tan的项目,
+      从本地git上传名为config-repo的文件夹，
+      文件夹里有（测试环境/正式环境/测试环境)配置文件：service1-dev.properties、service1-pro.properties、service1-test.project
+      
+      核心配置：
+      spring.cloud.config.server.git.uri=https://github.com/tanzuhao/git-tan
+      spring.cloud.config.server.git.search-paths=config-repo
+       
+   1.4.启动类引入注解
+
+   1.5.测试
+
+    a.启动spring-cloud-eureka-server服务
+
+    b.启动spring-cloud-config-server-V1.0服务
+
+    c.访问配置文件内容
+  
+      读取规则:
+      /{application}/{profile}/[{label}]
+
+      /{application}-{profile}.yml
+
+      /{application}-{profile}.properties
+
+      /{label}/{application}-{profile}.properties
+
+       /{label}/{application}-{profile}.ym
+
+      这里的label指的是对应Git上的不同的分支。默认为master。
+
+      规则demo（以service1-dev.properties举例）:
+        {application}=service1
+        {profile}=dev
+        {label}=master
+
+       例如：
+
+        http://localhost:9000/service1/dev
+
+        http://localhost:9000/service1/dev/master
+
+        http://localhost:9000/service1-dev.properties
+       
+        http://localhost:9000/master/service1-dev.properties
+
+4.基于spring-cloud-producer1-server-V1.0构建spring-cloud-config-client-V1.0 
+
+  2.1.端口号:8084 应用名:config-client
+  2.2.引入依赖包
+  2.3.配置文件
+
+    a.application.properties、application-dev.properties中的内容全部删除
+
+    b.配置bootstrap.properties
+     客户端默认优先加载bootstrap.properties，即便自己写了其他配置文件，
+     也会加载默认的bootstrap配置文件，不写的话会提示8888端口这种错误。
+
+    c.配置config服务发现
+        spring.cloud.config.discovery.enabled:激活 Config Server服务发现，这里默认是关闭的，
+         如果不开启的话，无法从注册中心获取到相关配置信息。
+
+        spring.cloud.config.discovery.serviceId：对应配置中心的服务ID 。
+
+        spring.cloud.config.name：客户端应用关联的应用，即{application}值。
+
+        spring.cloud.config.profile:关联 profile,和git里的文件名对应(dev:开发环境,test测试环境,pro正式环境)
+     
+        spring.cloud.config.discovery.serviceId:Config Server 服务器应用名称
+
+        spring.cloud.config.label:远程仓库的分支
+
+        获开发环境配置demo:
+        假如github上有文件:service1-dev.properties,核心配置如下:
+
+        spring.cloud.config.name=service1
+
+        spring.cloud.config.profile=dev
+
+  2.4.测试  
+
+    访问 localhost:8084/cloud/profile，获取service1-dev.properties中profile的值

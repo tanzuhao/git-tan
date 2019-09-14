@@ -1,0 +1,21 @@
+spring-cloud-config-high-available-V1.0
+
+spring cloud config 高可用
+
+基于spring-cloud-config-V1.0构建spring-cloud-config-high-available-V1.0
+   
+1.基于spring-cloud-config-server-V1.0构建spring-cloud-config1-high-server-V1.0
+    除项目名外，均不变
+
+2.基于spring-cloud-config-server-V1.0构建spring-cloud-config2-high-server-V1.0
+  端口号：9001
+
+3.基于spring-cloud-config-client-V1.0构建spring-cloud-config-high-client-V1.0
+    除项目名外，均不变
+4.测试
+  url: http://localhost:8084/cloud/profile
+
+  服务spring-cloud-config1-high-server-V1.0和spring-cloud-config2-high-server-V1.0有其中一个挂掉，
+
+  不影响spring-cloud-client-high-V1.0正常使用(访问url、重启)
+  

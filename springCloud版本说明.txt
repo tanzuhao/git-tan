@@ -1,0 +1,478 @@
+spring-cloud-feign-ribbon-V1.0(文件名)
+
+spring boot集成spring cloud feign、spring cloud ribbon
+
+1.为了降低复杂度和方便测试，项目基于spring-boot-base-V1.0集成。
+
+2.新建eureka服务：spring-cloud-eureka-server
+  2.1.作用：注册中心。
+   类似zookeeper,对多个springboot应用进行发现以及管理。
+   eureka注册中心，会等待应用主动向其进行注册，而eureka注册中心在发现了新的应用后，
+   会持续向应用发送心跳，判断其是否存活，并定时向注册中心发送心跳包，告知其存活情况。
+
+  2.2.一个空项目(无需controller、service、dao)、端口号：8761
+
+  2.3.服务提供者、客户端都会注册到该eureka服务
+
+  2.4.新建eureka操作
+   a.引入依赖包
+   b.添加配置文件
+   c.在启动类中增加@EnableEurekaServer
+
+  2.5.以后都使用这个注册中心，建议打Jar包部署，并开启服务
+
+3.服务提供者(生产者):spring-cloud-producer1-V1.0
+  3.1.生产者注册到eureka服务(即注册到：spring-cloud-eureka-server)
+
+  3.2.自定义别名和端口号
+     top1.应用别名:producer-server
+     top2.端口号：8081     
+
+  3.3.对外开放接口(详见:MessageProducerController)
+
+  3.4. copy一份生产者
+     top1.项目名：spring-cloud-producer2
+     top2.端口号:8082
+     top3.应用别名:producer-server
+         应用别名需与spring-cloud-producer1一致，才能实现服务端负载均衡。
+
+  3.5.新建生产者操作
+      a.引入依赖包
+      b.添加配置文件
+      c.在启动类中增加@EnableEurekaClient注解
+
+  3.6.以后经常使用这2个生产者测试（改动少），建议打Jar包部署，并开启服务
+
+4.客户端(消费者):spring-cloud-consumer-V1.0
+  4.1.客户端注册到eureka服务(即spring-cloud-eureka-server)
+
+  4.2.起应用别名:consumer-server(别名可自定义)
+
+  4.3.客户端调用服务方
+     top1.通过ip+port方式调用
+
+     top2.通过ribbon调用应用名
+     top3.ribbon+创建Feign接口
+         参数类型：
+         a.指定具体参数,例如：@RequestParam("id") String id,...
+         b.用map封装参数,例如：@RequestParam Map<String, Object> map
+         c.指定对象，例如：@RequestBody User user
+
+   4.4.新建消费者操作
+      a.引入依赖包
+      b.添加配置文件
+      c.在启动类中增加@EnableDiscoveryClient注解
+         应用启动后会注册到指定的注册中心中。
+
+5.ribbon实现客户端负载均衡
+  5.1 ribbon+feign+应用名调用
+
+  5.2.效果：客户端多次调用服务方，ribbon均匀的将请求分配到两个生产者实例中。
+
+6.数据库表未发生变更
+  spring-boot-base-V1.0.sql
+------------------------------------------------------------------------------------------
+spring-cloud-high-available-V1.0(文件名)
+
+eureka server 高可用
+
+基于spring-cloud-feign-ribbon-V1.0构建项目,做eureka高可用配置。因为没有集成spring cloud新组件，项目版本号小数加1，即V1.1。
+
+1.修改host文件,配置3个应用名映射到本机
+   目的：
+   Eureka互相注册要求各个Eureka实例的eureka.instance.hostname不同，如果相同，则会被Eureka标记为unavailable-replicas。
+   其他方式:
+
+   a.设置eureka.instance.hostname为域名或者直接使用不同IP。
+
+   b.使用当前机器IP、127.0.0.1和localhost分别作为三个Eureka的
+
+   操作: 修改 C:\Windows\System32\drivers\etc\hosts文件
+
+        修改内容： 127.0.0.1    localhost tan-server1 tan-server2 tan-server3
+
+2.新建3个eureka server
+    a.服务发现1：
+     项目名:spring-cloud-eureka1-hight-server-V1.0
+     端口号:8761
+     应用名:tan-eureka-service
+     主机名:eureka1-server
+  
+     top3.服务发现2：
+     项目名:spring-cloud-eureka2-hight-server-V1.0
+     端口号:8762
+     应用名:tan-eureka-service
+     主机名:eureka2-server
+   
+     top3.服务发现3：
+     项目名:spring-cloud-eureka3-hight-server-V1.0
+     端口号:8763
+     应用名:tan-eureka-service
+     主机名:eureka3-server
+      
+3.三个eureka server服务进行两两注册
+
+   a.eureka server服务之间数据可同步
+
+   b.其中一个eureka server 挂掉，不影响消费者/生产者工作。
+
+4.基于spring-cloud-feign-ribbon-V1.0新建消费者和生产者
+   
+   生产者：spring-cloud-producer1-hight-V1.0，spring-cloud-producer2-hight-V1.0
+
+   消费者: spring-cloud-consumer-hight-V1.0 
+ 
+    生产者和消费者注册到3个注册中心(eureka1、eureka2、eureka3),详见.properties配置..
+     
+4.数据库表未发生变更
+  spring-boot-base-V1.0.sql
+
+---------------------------------------------------------------------------------------------------------------
+spring-cloud-hystrix-V1.0
+
+ spring cloud hystrix 熔断处理
+
+1.概念
+  Spring Cloud Netfix Hystrix是隔离措施的一种实现，可以设置在某种超时或失败情形下断开
+  依赖调用或者返回指定逻辑，从而提高分布式系统的稳定性。
+
+2.作用
+  Hystrix可以实现快速失败，如果它在一段时间内侦测到许多类似的错误，
+  会强迫其以后的多个调用快速失败，不再访问远程服务器，
+  从而防止应用程序不断地尝试执行可能会失败的操作进而导致资源耗尽。
+  Hystrix熔断器也可以使应用程序能够诊断错误是否已经修正，如果已经修正，应用程序会再次尝试调用操作。
+
+3. 实现操作
+  Hystrix进行FallBack操作来服务降级，Fallback相当于是降级操作. 
+  对于查询操作, 我们可以实现一个fallback方法, 当请求后端服务出现异常的时候, 
+  可以使用fallback方法返回的值. fallback方法的返回值一般是设置的默认值或者来自缓存。
+  通知后面的请求告知这服务暂时不可用了。
+
+4.生产者和注册中心不需要改动。
+  沿用 spring-cloud-producer1、spring-cloud-producer2、spring-cloud-eureka-server，分别打包部署
+ 
+5.消费者基于spring-cloud-consumer-V1.0构建spring-cloud-consumer-hystrix-V1.0。
+  5.1.引入hystrix依赖包
+  5.2.配置文件
+  5.3.启动类加入注解
+  5.4.熔断回调HystrixController、HystrixService、HystrixFailBackService
+  
+6.重构
+  6.1.去掉IP调用
+  6.1.去掉ribbon调用
+  6.2.重构feign调用，实现失败回调和负载均衡。
+   feign集成了ribbon功能
+
+7.熔断处理和负载均衡测试
+
+  7.1.分别启动服务:eureka-server、producer1、producer2、consumer
+
+  7.2.访问:http://localhost:8888/cloud/hystrix/hello
+
+      a.正常狂刷url，consumer请求负载均衡，访问producer1、producer2都有可能。
+
+      b.关掉producer1,狂刷url,当请求producer1服务时，回调显示错误信息。往后只请求producer2服务。
+
+      c.启动producer1服务，狂刷url，consumer请求负载均衡，访问producer1、producer2都有可能。
+
+8.数据库表未发生变更
+  spring-boot-base-V1.0.sql
+     
+-----------------------------------------------------------------------------------------------------
+spring-cloud-zuul-v1.0
+
+ spring boot 集成zuul（路由网关）
+
+1.概念
+  网关是系统的唯一对外的入口，介于客户端和服务器端之间的中间层，
+ 处理非业务功能 提供路由请求、鉴权、监控、缓存、限流等功能。
+
+2.作用
+ 微服务网关介于服务端与客户端的中间层，所有外部服务请求都会先经过微服务网关，
+ 客户端只能跟微服务网关进行交互，无需调用特定微服务接口，使得开发得到简化。
+ 总的理解网关优点：服务网关 = 路由转发 + 过滤器
+ 1）路由转发：接收一切外界请求，转发到后端的微服务上去。
+ 2）过滤器：在服务网关中可以完成一系列的横切功能，
+ 例如权限校验、限流以及监控等，这些都可以通过过滤器完成（其实路由转发也是通过过滤器实现的）。
+
+3.核心功能
+  3.1.智能路由
+    接收外部一切请求，并转发到后端的对外服务open-service上去；
+     (注意：我们只转发外部请求，服务之间的请求不走网关，这就表示全链路追踪、内部服务API监控、内部服务之间调用的容错、智能路由不能在网关完成)
+
+   3.2.权限校验:
+   可在微服务网关上进行认证，然后在将请求转发给微服务，无须每个微服务都进行认证，不校验服务内部的请求
+
+    3.3.API监控
+   只监控经过网关的请求，以及网关本身的一些性能指标（例如，gc等）
+
+    3.4.限流
+   与监控配合，进行限流操作；
+
+    3.5.API日志统一收集
+   类似于一个aspect切面，记录接口的进入和出去时的相关日志
+
+4.新建网关服务:spring-cloud-zuul-server-V1.0
+   4.1.引入网关依赖
+
+   4.2.配置文件.properties
+      a.注册到注册中心
+
+      b.网关配置(.propertis文件)    
+        b1.定义网关服务名
+           用来识别不同网关
+
+        b2.网关路由映射
+           把网关和服务应用名关联起来,即根据自定义网关路由名可找到对应的服务方。
+         格式： eureka.zuul.routes.服务方应用名=自定义网关路由名
+
+   5.2.定义路由映射
+
+   4.3.在启动类添加网关注解 @EnableZuulProxy
+
+   4.4.登录过滤器LoginFilter
+       权限校验测试，例如请求是否带token
+     
+   4.5.限流过滤器OrderRateLimitFilter
+        每秒不能超过xx个请求任务,超过的请求，被挤出。
+
+5.基于spring-cloud-producer1-V1.0 构建spring-cloud-order-zuul-V1.0
+   服务应用名:order-server
+   端口号:8083
+      
+
+6.生产者和注册中心不需要改动。
+  沿用 spring-cloud-producer1、spring-cloud-producer2、spring-cloud-eureka-server，分别打包部署
+
+7.基于spring-cloud-consumer-hystrix-V1.0构建消费者spring-cloud-consumer-zuul-V1.0
+   7.1.网关配置.properties
+      a.网关应用名。
+        决定调用哪个网关
+      b.网关路由名
+        流程:消费者根据网关路由名--->调用网关服务------>网关服务根据路由名---->找到生产者应用名 ------>根据生产者应用名调用生产者服务。     
+ 
+   7.2.调用网关请求ZuulController、ZuulService、ZuulFallBackService
+
+   7.3.测试
+    a.测试zuul智能路由：
+      http://localhost:8888/cloud/zuul/order
+      http://localhost:8888/cloud/zuul/producer
+ 
+    b.测试登录过滤
+      请求是否带token
+      正常：http://localhost:8888/cloud/zuul/order/find?token=123
+      失败：http://localhost:8888/cloud/zuul/order/find
+
+    c.测试限流过滤器     
+      狂刷url: http://localhost:8888/cloud/zuul/order/get
+       
+      刷快异常，刷慢正常。
+
+8.数据库表未发生变更
+  spring-boot-base-V1.0.sql
+----------------------------------------------------------------------------------------------------------
+ spring-cloud-admin-monitor-V1.0 
+
+spring cloud 集成spring boot admin，用来监控spring cloud 服务
+
+1.概念
+Spring Boot Admin 是一个开源社区项目，用于管理和监控SpringBoot应用程序。 
+应用程序作为Spring Boot Admin Client向为Spring Boot Admin Server注册（通过HTTP）
+或使用SpringCloud注册中心（例如Eureka，Consul）发现。
+
+2.作用
+  a..监控spring cloud 服务健康状况
+
+  b.邮箱报警，推送spring cloud 服务健康信息。
+
+3.基于spring-cloud-eukera-server构建spring boot admin服务spring-cloud-admin-monitor-server-V1.0
+   3.1.引入依赖包
+     security依赖包、spring boot admin依赖、邮箱依赖包、jetty的依赖
+
+      备注: 默认用tomcat容器，操作过程会出现: Calling [asyncError()] is not valid for a request with Async state [MUST_DISPATCH]
+            改用jetty容器，没有问题。
+ 
+   3.2.配置文件
+     a.端口号:8001 
+     b.应用名:admin-monitor-server
+     c.设置登录账号和密码
+     d.设置邮箱信息
+
+   3.3.在启动类加入注解@EnableAdminServer
+
+4.注册中心、生产者、消费者沿用初始版本jar测试。
+   spring-cloud-eureka-server、spring-cloud-producer1-V1.0、spring-cloud-producer2-V1.0、
+   spring-cloud-consumer-V1.0 均不更改。
+  
+5.测试
+   5.1.spring boot admin 登录管理测试
+      a.url地址: localhost:8001
+      b.账号/密码=admin/admin
+          在.properties设置账号和密码
+
+   5.2.spring boot admin 监控spring cloud 服务健康状况测试
+
+      注册中心、生产者、消费者启动或关闭时，spring boot admin 管理页面会有显示
+
+   5.3.spring boot admin 邮箱预警
+
+     注册中心、生产者、消费者启动或关闭时，会发送信息到指定邮箱。
+    
+       邮箱信息配置在.properties,其中发送人邮箱要开启POP3/SMTP服务，开启操作：
+
+       进入邮箱首页后，设置----->邮箱设置---->账户----->POP3/IMAP/SMTP/Exchange/CardDAV/CalDAV服务--->开启POP3/SMTP服务
+
+6.spring-cloud-admin-monitor-server-V1.0 不需要数据库
+   jar依赖的数据库表均是spring-boot-base-V1.0.sql
+
+--------------------------------------------------------------------------------------------
+spring-cloud-config-V1.0
+
+集成spring cloud config
+
+搭建 config server 和 config client
+
+1.简介
+ a.Config Server：为所有环境中的应用程序管理其外部属性。
+   Config Server是一个集中式、可扩展的配置服务器，它可以集中管理应用程序各个环境下的配置，默认使用Git存储配置内容。
+
+ b.Config Client: 微服务在启动时，通过Config Client请求Config Server以获取配置内容，同时会缓存这些内容。
+
+2.为什么要使用spring cloud config
+
+  2.1.集中管理：成百上千（可能没这么多）个微服务需要集中管理配置，否则维护困难、容易出错；
+
+  2.2.运行期动态调整：某些参数需要在应用运行时动态调整（如连接池大小、熔断阈值等），并且调整时不停止服务；
+  
+  2.3.自动更新配置：微服务能够在配置发生变化是自动更新配置。
+
+3.基于spring-cloud-eureka-server构建spring-cloud-config-server-V1.0 
+
+   1.1.端口号：9000 应用名: config-server 
+   1.2.引入依赖包 
+   1.3.配置文件  
+      a.spring.cloud.config.server.git.uri:github上对应项目的地址  
+
+      b.spring.cloud.config.server.git.search-paths:git搜索的相对路径
+
+      c.spring.cloud.config.label:配置仓库的分支
+
+      配置demo:
+
+      在https://github.com/tanzuhao创建了一个名为git-tan的项目,
+      从本地git上传名为config-repo的文件夹，
+      文件夹里有（测试环境/正式环境/测试环境)配置文件：service1-dev.properties、service1-pro.properties、service1-test.project
+      
+      核心配置：
+      spring.cloud.config.server.git.uri=https://github.com/tanzuhao/git-tan
+      spring.cloud.config.server.git.search-paths=config-repo
+       
+   1.4.启动类引入注解
+
+   1.5.测试
+
+    a.启动spring-cloud-eureka-server服务
+
+    b.启动spring-cloud-config-server-V1.0服务
+
+    c.访问配置文件内容
+  
+      读取规则:
+      /{application}/{profile}/[{label}]
+
+      /{application}-{profile}.yml
+
+      /{application}-{profile}.properties
+
+      /{label}/{application}-{profile}.properties
+
+       /{label}/{application}-{profile}.ym
+
+      这里的label指的是对应Git上的不同的分支。默认为master。
+
+      规则demo（以service1-dev.properties举例）:
+        {application}=service1
+        {profile}=dev
+        {label}=master
+
+       例如：
+
+        http://localhost:9000/service1/dev
+
+        http://localhost:9000/service1/dev/master
+
+        http://localhost:9000/service1-dev.properties
+       
+        http://localhost:9000/master/service1-dev.properties
+
+4.基于spring-cloud-producer1-server-V1.0构建spring-cloud-config-client-V1.0 
+
+  2.1.端口号:8084 应用名:config-client
+  2.2.引入依赖包
+  2.3.配置文件
+
+    a.application.properties、application-dev.properties中的内容全部删除
+
+    b.配置bootstrap.properties
+     客户端默认优先加载bootstrap.properties，即便自己写了其他配置文件，
+     也会加载默认的bootstrap配置文件，不写的话会提示8888端口这种错误。
+
+    c.配置config服务发现
+        spring.cloud.config.discovery.enabled:激活 Config Server服务发现，这里默认是关闭的，
+         如果不开启的话，无法从注册中心获取到相关配置信息。
+
+        spring.cloud.config.discovery.serviceId：对应配置中心的服务ID 。
+
+        spring.cloud.config.name：客户端应用关联的应用，即{application}值。
+
+        spring.cloud.config.profile:关联 profile,和git里的文件名对应(dev:开发环境,test测试环境,pro正式环境)
+     
+        spring.cloud.config.discovery.serviceId:Config Server 服务器应用名称
+
+        spring.cloud.config.label:远程仓库的分支
+
+        获开发环境配置demo:
+        假如github上有文件:service1-dev.properties,核心配置如下:
+
+        spring.cloud.config.name=service1
+
+        spring.cloud.config.profile=dev
+
+  2.4.测试  
+
+     访问 localhost:8084/cloud/profile，获取service1-dev.properties中profile的值
+-----------------------------------------------------------------------------------------------------------------------
+spring-cloud-config-high-available-V1.0
+
+spring cloud config 高可用
+
+基于spring-cloud-config-V1.0构建spring-cloud-config-high-available-V1.0
+   
+1.基于spring-cloud-config-server-V1.0构建spring-cloud-config1-high-server-V1.0
+    除项目名外，均不变
+
+2.基于spring-cloud-config-server-V1.0构建spring-cloud-config2-high-server-V1.0
+  端口号：9001
+
+3.基于spring-cloud-config-client-V1.0构建spring-cloud-config-high-client-V1.0
+    除项目名外，均不变
+4.测试
+  url: http://localhost:8084/cloud/profile
+
+  服务spring-cloud-config1-high-server-V1.0和spring-cloud-config2-high-server-V1.0有其中一个挂掉，
+
+  不影响spring-cloud-client-high-V1.0正常使用(访问url、重启)
+ 
+------------------------------------------------------------------------------------------------------------ 
+
+
+
+
+
+
+
+
+  
+
+
+

@@ -1,0 +1,22 @@
+﻿spring-boot-web-V1.0:
+
+spring boot集成thymeleaf模板、boostrap、angularJs
+
+1.基于spring-boot-base-V1.0构建web项目
+
+2.spring boot集成thymeleaf模板+bootstrap
+  2.1. 简单demo:
+   localhost:8086/site/
+
+  2.2.thymeleaf详细使用:
+   localhost:8086/student/index
+   ........
+   详见ThymeleafBoostrapController.java
+
+3.spring boot集成angularJs+bootstrap
+  页面可以增删改查
+  首页访问地址:
+  localhost:8086/angularIndex/index
+
+3.数据库未发生变更
+  resource/附件/spring-boot-base-V1.0.sql

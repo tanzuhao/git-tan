@@ -1,0 +1,24 @@
+﻿spring-boot-redis-V1.0
+
+springboot集成redis
+
+1.基于spring-boot-base-V1.0集成redis
+
+2.redis安装包路径: 附件/redis64-2.8.12.zip
+  
+  redis连接密码：a123456，其他均为默认配置
+
+  redis密码查看:redis.windows.conf文件下requirepass属性值
+
+3.redis启动命令:
+
+   cmd ---->d: ----cd D:\tools\redis64-2.8.12 ----> redis-server.exe  redis.windows.conf
+  
+   注意事项：redis cmd 窗口关闭，redis即关闭。启动方式可以优化成：将redis加到Windows服务中（详见百度）。
+
+4.封装redis操作工具类 RedisHelperImpl
+  
+5.RedisController为redis基本增删改查demo
+
+6.数据库表未发生变更
+  resource/附件/spring-boot-base-V1.0.sql

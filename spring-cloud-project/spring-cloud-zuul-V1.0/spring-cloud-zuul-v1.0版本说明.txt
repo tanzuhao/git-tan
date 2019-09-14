@@ -1,0 +1,88 @@
+spring-cloud-zuul-v1.0
+
+ spring boot 集成zuul（路由网关）
+
+1.概念
+  网关是系统的唯一对外的入口，介于客户端和服务器端之间的中间层，
+ 处理非业务功能 提供路由请求、鉴权、监控、缓存、限流等功能。
+
+2.作用
+ 微服务网关介于服务端与客户端的中间层，所有外部服务请求都会先经过微服务网关，
+ 客户端只能跟微服务网关进行交互，无需调用特定微服务接口，使得开发得到简化。
+ 总的理解网关优点：服务网关 = 路由转发 + 过滤器
+ 1）路由转发：接收一切外界请求，转发到后端的微服务上去。
+ 2）过滤器：在服务网关中可以完成一系列的横切功能，
+ 例如权限校验、限流以及监控等，这些都可以通过过滤器完成（其实路由转发也是通过过滤器实现的）。
+
+3.核心功能
+  3.1.智能路由
+    接收外部一切请求，并转发到后端的对外服务open-service上去；
+     (注意：我们只转发外部请求，服务之间的请求不走网关，这就表示全链路追踪、内部服务API监控、内部服务之间调用的容错、智能路由不能在网关完成)
+
+   3.2.权限校验:
+   可在微服务网关上进行认证，然后在将请求转发给微服务，无须每个微服务都进行认证，不校验服务内部的请求
+
+    3.3.API监控
+   只监控经过网关的请求，以及网关本身的一些性能指标（例如，gc等）
+
+    3.4.限流
+   与监控配合，进行限流操作；
+
+    3.5.API日志统一收集
+   类似于一个aspect切面，记录接口的进入和出去时的相关日志
+
+4.新建网关服务:spring-cloud-zuul-server-V1.0
+   4.1.引入网关依赖
+
+   4.2.配置文件.properties
+      a.注册到注册中心
+
+      b.网关配置(.propertis文件)    
+        b1.定义网关服务名
+           用来识别不同网关
+
+        b2.网关路由映射
+           把网关和服务应用名关联起来,即根据自定义网关路由名可找到对应的服务方。
+         格式： eureka.zuul.routes.服务方应用名=自定义网关路由名
+
+   5.2.定义路由映射
+
+   4.3.在启动类添加网关注解 @EnableZuulProxy
+
+   4.4.登录过滤器LoginFilter
+       权限校验测试，例如请求是否带token
+     
+   4.5.限流过滤器OrderRateLimitFilter
+        每秒不能超过xx个请求任务,超过的请求，被挤出。
+
+5.基于spring-cloud-producer1-V1.0 构建spring-cloud-order-zuul-V1.0
+   服务应用名:order-server
+   端口号:8083
+      
+
+6.生产者和注册中心不需要改动。
+  沿用 spring-cloud-producer1、spring-cloud-producer2、spring-cloud-eureka-server，分别打包部署
+
+7.基于spring-cloud-consumer-hystrix-V1.0构建消费者spring-cloud-consumer-zuul-V1.0
+   7.1.网关配置.properties
+      a.网关应用名。
+        决定调用哪个网关
+      b.网关路由名
+        流程:消费者根据网关路由名--->调用网关服务------>网关服务根据路由名---->找到生产者应用名 ------>根据生产者应用名调用生产者服务。     
+ 
+   7.2.调用网关请求ZuulController、ZuulService、ZuulFallBackService
+
+   7.3.测试
+    a.测试zuul智能路由：
+      http://localhost:8888/cloud/zuul/order
+      http://localhost:8888/cloud/zuul/producer
+ 
+    b.测试登录过滤
+      请求是否带token
+      正常：http://localhost:8888/cloud/zuul/order/find?token=123
+      失败：http://localhost:8888/cloud/zuul/order/find
+
+    c.测试限流过滤器     
+      狂刷url: http://localhost:8888/cloud/zuul/order/get
+       
+      刷快异常，刷慢正常。
