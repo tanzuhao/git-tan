@@ -198,8 +198,215 @@ spring boot 集成 security
  全量sql详见: resource/附件/spring_boot-security-web-V1.0全量.sql
 
 ---------------------------------------------------------------
+spring-boot-dubbo-V1.0
+
+spring boot 集成 dubbo+zookeeper
+
+一.zookeeper
+
+1.概念
+
+Zookeeper是一个分布式的，开放源码的分布式应用程序协调服务。
+它是为分布式应用提供一致性服务的软件,提供的功能包括：配置维护、域名服务、分布式同步、组服务等。
+
+2.作用
+
+Zookeeper的目标就是封装好复杂易出错的关键服务，将简单易用的接口和性能高效、功能稳定的系统提供给用户。
+java版提供了分布式独享锁、选举、队列的接口
+
+3.原理
+zookeeper是以Fast Paxos算法为基础的，Paxos算法存在活锁的问题，即当有多个proposer交错提交时，有可能互相
+排斥导致没有一个proposer能提交成功，而Fast Paxos做了一些优化，通过选举产生一个leader,只要leader才能
+提交proposer。
+
+  基本运转流程:
+  1、选举Leader
+ 
+  2、同步数据
+
+  3、选举Leader 过程中算法有很多，但要达到的选举标准时一致的。
+
+  4、Leader要具有最高的执行ID，类似root权限
+
+  5、集群中大多数的机器得到响应并接受选出的Leader。
+
+4.安装
+  参考：https://www.cnblogs.com/jimcsharp/p/8358271.html
+
+  4.1.解压安装包
+   zookeeper安装包路径： spring-boot-dubbo-V1.0\zookeeper-tools
+
+  4.2. ZooKeeper软件的文件和目录
+    bin目录:
+      zk的可执行脚本目录，包括zk服务进程，zk客户端，等脚本。其中，.sh是Linux环境下的脚本，.cmd是Windows环境下的脚本。
+  
+    conf目录：
+      配置文件目录。zoo_sample.cfg为样例配置文件，需要修改为自己的名称，一般为zoo.cfg。log4j.properties为日志配置文件。
+   
+    lib目录:
+      zk依赖的包。
+    
+   contrib目录:
+     一些用于操作zk的工具包。
+   
+   recipes目录;
+     zk某些用法的代码示例
+
+  4.3.单机模式安装
+     ZooKeeper的安装包括单机模式安装，以及集群模式安装。
+
+    单机模式较简单，是指只部署一个zk进程，客户端直接与该zk进程进行通信。
+   
+   a.运行配置
+      a1.找到conf目录下提供了配置的样例zoo_sample.cfg，将其名称修改为zoo.cfg。
+
+      a2.zoo.cfg默认配置。
+        tickTime:时长单位为毫秒，为zk使用的基本时间度量单位。
+        dataDir:无默认配置，必须配置，用于配置存储快照文件的目录。如果没有配置dataLogDir，那么事务日志也会存储在此目录
+       
+        例如：dataDir=/tools/apache-zookeeper-3.5.5-bin/log 
+
+   b.启动
+     b1.在Windows环境下，直接双击zkServer.cmd即可。
+
+     b2.在Linux环境下，进入bin目录，执行命令./zkServer.sh start
+
+   c.连接
+
+    同一台主机上的zk进程:
+
+    c1.Windows环境下,直接运行bin/目录下的zkCli.cmd
+
+    c2.Linux环境下,直接运行bin/目录下的zkCli.sh
+
+   4.4.zookeeper常用命令
+
+     建立节点:create /zk 主节点名
+
+     获得节点: get /zk
+
+     设置节点: set /zk 新节点名
+
+     建立子节点: set /zk/主节点名/子节点名
+
+     输出节点目录: ls /zk
+
+    删除节点: delete /zk
+
+二、dubbo
+
+1.概念
+Dubbo是阿里巴巴公司开源的一个高性能优秀的服务框架，使得应用可通过高性能的 RPC 实现服务的输出和输入功能，可以和Spring框架无缝集成。
+
+Dubbo是一款高性能、轻量级的开源Java RPC框架，它提供了三大核心能力：面向接口的远程方法调用，智能容错和负载均衡，以及服务自动注册和发现。
+
+2.核心部件
+Remoting: 网络通信框架，实现了 sync-over-async 和request-response 消息机制.
+
+RPC: 一个远程过程调用的抽象，支持负载均衡、容灾和集群功能
+
+Registry: 服务目录框架用于服务的注册和服务事件发布和订阅
+
+3.工作原理
+
+监控中心负责统计各服务调用次数，调用时间等，统计先在内存汇总后每分钟一次发送到监控中心服务器，并以报表展示。
+
+服务提供者向注册中心注册其提供的服务，并汇报调用时间到监控中心，此时间不包含网络开销。
+
+服务消费者向注册中心获取服务提供者地址列表，并根据负载算法直接调用提供者，同时汇报调用时间到监控中心，此时间包含网络开销。
+
+4.术语
+Provider：暴露服务方称之为“服务提供者”。
+
+Consumer：调用远程服务方称之为“服务消费者”。
+
+Registry：服务注册与发现的中心目录服务称之为“服务注册中心”。
+
+Monitor：统计服务的调用次数和调用时间的日志服务称之为“服务监控中心”。
+
+三、spring boot集成 dubbo
+
+  1.基于spring-boot-base-V1.0构建spring-boot-dubbo-producer1-V1.0
+
+    1.1.引入dubbo依赖（.pom）
+  
+    1.2.配置文件(.properties)
+
+      a.应用名:producer-server
+
+      b.端口号:9001
+
+      c.注册中心协议和地址
+       dubbo.registry.protocol=zookeeper
+       dubbo.registry.address=127.0.0.1:2181
+
+      d.通信规则
+       dubbo.protocol.name=dubbo
+       dubbo.protocol.port=20880
+
+       f.连接监控中心
+       dubbo.monitor.protocol=registry
+
+     1.3.启动类加入dubbo注解@EnableDubbo
+
+     1.4.提供接口服务
+
+      实现类用属于Dubbo的@Service或@Component注解，而非Spring。
+      其作用：暴露服务
+
+   2.基于spring-boot-base-V1.0构建spring-boot-dubbo-consumer-V1.0
+     
+      2.1.引入dubbo依赖（.pom）
+
+      2.2.配置文件(.properties)
+    
+          a.端口号:8086
+      
+          b.应用名
+            dubbo.application.name=consumer-server
+   
+          c.注册中心配置
+            dubbo.registry.address=zookeeper://127.0.0.1:2181
+
+          d.监控协议
+            dubbo.monitor.protocol=registry
+    
+       2.3.启动类加入dubbo注解@EnableDubbo
+
+       2.4.新建或引入服务方提供的接口
+           demo是采用新建的方式，详见DubboUserService,真正开发过程，建议设公用接口和POJO类。
+
+       2.5.远程调用服务方接口
+           dubbo提供了@Reference注解，可替换@Autowired注解，用于引入远程服务。
+
+            demo详见DubboUserController
+
+       2.6.测试
+          a.启动zookeeper
+
+          b.启动生产者spring-boot-dubbo-producer1-V1.0
+ 
+          c.启动消费者spring-boot-dubbo-consumer-V1.0
+ 
+          f.访问：localhost:8086/dubbo/user/getUserList
+
+四.数据库未发生变更
+  spring-boot-base-V1.0.sql
+           
+--------------------------------------------------------------------------------------------------------------   
+      
+       
 
 
+
+
+
+
+
+
+
+
+  
 
 
 
